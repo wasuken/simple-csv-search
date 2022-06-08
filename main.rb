@@ -3,25 +3,6 @@ require "benchmark"
 require './lib/liner_search.rb'
 require './lib/simple_index_search.rb'
 
-class LSearch
-  include LinerSearch
-  def index_path
-    "./indexes"
-  end
-  def csv_filepath
-    "./db.csv"
-  end
-end
-class SISearch
-  include SimpleIndexSearch
-  def index_path
-    "./indexes"
-  end
-  def csv_filepath
-    "./db.csv"
-  end
-end
-
 n = 100
 
 ls = LSearch.new
