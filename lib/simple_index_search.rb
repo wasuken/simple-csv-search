@@ -3,16 +3,11 @@ require "csv"
 require "json"
 
 # インデックスからデータを取得し、インデックス最大値まで読み取る
-module SimpleIndexSearch
-  # csv_filepath
-  # index_path
-  # インデックスファイルがない場合は通常検索を行うため
-  include LinerSearch
-
+class SimpleIndexSearch < LinerSearch
   def index(key)
     line_num = 0
     indexes = {}
-    CSV.foreach(self.csv_filepath, headers: true) do |row|
+    CSV.foreach(@csv_filepath, headers: true) do |row|
       data = row.to_h
       ngrams = data[key].each_char
         .each_cons(3)
@@ -24,12 +19,12 @@ module SimpleIndexSearch
 
       line_num += 1
     end
-    File.write("#{self.index_path}/#{key}.json", indexes.to_json)
+    File.write("#{@index_path}/#{key}.json", indexes.to_json)
   end
 
   # インデックスを読み取ってくれる
   def read_index_search(k, q)
-    index_json = JSON.parse(File.read("#{self.index_path}/#{k}.json"))
+    index_json = JSON.parse(File.read("#{@index_path}/#{k}.json"))
     self.index_search(k, q, index_json)
   end
 
@@ -48,7 +43,7 @@ module SimpleIndexSearch
 
     line_num = 0
     rst = []
-    CSV.foreach(self.csv_filepath, headers: true) do |row|
+    CSV.foreach(@csv_filepath, headers: true) do |row|
       if line_nums[0] == line_num
         rst << row.to_h
         line_nums = line_nums.drop(1)
