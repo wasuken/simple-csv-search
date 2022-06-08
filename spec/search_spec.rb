@@ -2,43 +2,19 @@ require_relative "../lib/liner_search"
 require_relative "../lib/simple_index_search"
 require_relative "../lib/file_index_search"
 
-class LSearch
-  include LinerSearch
-
-  def index_path
-    "./indexes"
-  end
-
-  def csv_filepath
-    "./db.csv"
-  end
-end
-
-class SISearch
-  include SimpleIndexSearch
-
-  def index_path
-    "./indexes"
-  end
-
-  def csv_filepath
-    "./db.csv"
-  end
-end
-
-class FISearch
-  include FileIndexSearch
-
-  def index_path
-    "./findexes"
-  end
-
-  def csv_filepath
-    "./db.csv"
-  end
-end
-
 N = 2
+
+# インデックス作成
+unless File.exist?("#{__dir__}/../indexes/title.json")
+  puts "run si"
+  SimpleIndexSearch.new.index "title"
+end
+if Dir.glob("#{__dir__}/../fs_indexes/*.index").size <= 0
+  puts "run fi"
+
+  FileIndexSearch.new("./db.csv", "./fs_indexes").index "title"
+end
+
 
 RSpec.describe "CSV検索" do
   let!(:test_case_pairs) {
@@ -50,31 +26,46 @@ RSpec.describe "CSV検索" do
       ["title", "とある"],
     ]
   }
-  let!(:ls) { LSearch.new }
-  let!(:sis) { SISearch.new }
-  let!(:fis) { FISearch.new }
+  let!(:ls) { LinerSearch.new }
+  let!(:sis) { SimpleIndexSearch.new }
+  let!(:fis) { FileIndexSearch.new("./db.csv", "./fs_indexes") }
   context "サンプルによる検索" do
-    it "LSearch" do
+    it "LinerSearch" do
       (test_case_pairs * N).each do |p|
         title, q = p
         rst = ls.search title, q
+        ftitle = ""
+        ftitle = rst[0]["title"] if rst[0]
+        puts "	first item title: #{ftitle}"
+        puts "	items: #{rst.size}"
         expect(rst.is_a? Array).to be_truthy
       end
     end
-    it "SISearch" do
-      sis.index "title"
+    it "SimpleIndexSearch" do
       title_index_json = JSON.parse(File.read("./indexes/title.json"))
       (test_case_pairs * N).each do |p|
         title, q = p
         rst = sis.index_search title, q, title_index_json
+        ftitle = ""
+        ftitle = rst[0]["title"] if rst[0]
+        puts "	first item title: #{ftitle}"
+        puts "	items: #{rst.size}"
         expect(rst.is_a? Array).to be_truthy
       end
     end
-    it "FISearch" do
-      fis.index "title"
+    it "FileIndexSearch" do
       (test_case_pairs * N).each do |p|
         title, q = p
         rst = fis.index_search title, q
+
+        ftitle = ""
+        if rst.size > 0
+          fitem = rst[0]
+          ftitle = fitem.split(',')[4]
+        end
+
+        puts "	first item title: #{ftitle}"
+        puts "	items: #{rst.size}"
         expect(rst.is_a? Array).to be_truthy
       end
     end
