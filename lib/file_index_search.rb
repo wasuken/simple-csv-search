@@ -34,13 +34,13 @@ class FileIndexSearch < LinerSearch
   end
 
   def parse_index(w)
+    v = w.chars.map(&:downcase).map(&:ord).map { |x| x.to_s(16) }.join()
     ipath = "#{@index_path}/#{v}.index"
+    return nil unless File.exist?(i_path)
     self.base_parse_index(w, ipath)
   end
 
   def base_parse_index(w, i_path)
-    v = w.chars.map(&:downcase).map(&:ord).map { |x| x.to_s(16) }.join()
-    return nil unless File.exist?(i_path)
     File.read(i_path).split("
 ")
   end
