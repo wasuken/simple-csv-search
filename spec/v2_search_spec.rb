@@ -14,6 +14,7 @@ RSpec.describe "CSV検索V2 unit test" do
   let!(:v2_unit) { V2Search.new("./test_dir/db.csv", "./test_dir/indexes") }
   before do
     fp = "./test_dir/indexes"
+    FileUtils.rm_rf(fp)
     FileUtils.mkdir_p(fp)
     FileUtils.copy("./db.csv", "./test_dir/db.csv")
   end
@@ -28,6 +29,12 @@ RSpec.describe "CSV検索V2 unit test" do
       expect(rst).to contain_exactly("db.csv.0", "db.csv.1", "db.csv.2", "db.csv.3", "db.csv.4", "db.csv.5")
     end
     it "file line size" do
+      v2_unit.partition 2000
+      lines = File.readlines("./test_dir/db.csv")
+      # -1 はheader分除外
+      total_line_num = lines.size - 1
+      rst = Dir.glob("./test_dir/indexes/*.csv.*").map { |fp| File.readlines(fp).size - 1 }.sum
+      expect(rst).to eq total_line_num
     end
   end
   context "indexing test" do
